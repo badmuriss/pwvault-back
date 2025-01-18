@@ -10,19 +10,19 @@ public interface SecretMapper {
 
     SecretMapper INSTANCE = Mappers.getMapper(SecretMapper.class);
 
-    SecretDto toDto(Secret secret);
-
     Secret toEntity(SecretDto secretDto);
 
-    @Mapping(target = "id", ignore = true) // id is typically generated later
-    SecretDto fromCreateRequest(SecretCreateRequest secretCreateRequest);
+    SecretDto toDto(Secret secret);
 
-    SecretDto fromUpdateRequest(SecretUpdateRequest secretUpdateRequest);
+    @Mapping(target = "id", ignore = true) // id is typically generated later
+    SecretDto toDto(SecretCreateRequest secretCreateRequest);
+
+    SecretDto toDto(SecretUpdateRequest secretUpdateRequest);
 
     @Mapping(target = "name", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "folder", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "value", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    SecretDto fromUpdateRequest(SecretUpdateRequest secretUpdateRequest, @MappingTarget SecretDto secretDto);
+    SecretDto toDto(SecretUpdateRequest secretUpdateRequest, @MappingTarget SecretDto secretDto);
 
     SecretListResponse toListResponse(SecretDto secretDto);
 

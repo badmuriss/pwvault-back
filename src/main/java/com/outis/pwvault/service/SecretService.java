@@ -1,6 +1,7 @@
 package com.outis.pwvault.service;
 
 import com.outis.pwvault.dto.SecretDto;
+import com.outis.pwvault.dto.SecretUpdateRequest;
 import com.outis.pwvault.mapper.SecretMapper;
 import org.springframework.stereotype.Service;
 
@@ -19,16 +20,15 @@ public class SecretService {
         return null;
     }
 
-    public SecretDto getDetails(){
+    public SecretDto getDetails(String id){
         return null;
     }
 
-    public SecretDto update(){
+    public SecretDto create(SecretDto secretDto){
         return null;
     }
 
-    public SecretDto create(){
+    public SecretDto update(String id, SecretUpdateRequest secretUpdateRequest) {
         return null;
     }
-
 }
