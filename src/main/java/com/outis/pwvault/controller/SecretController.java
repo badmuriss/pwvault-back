@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 @RestController
@@ -31,7 +32,7 @@ public class SecretController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SecretDetailResponse> getSecretDetail(@PathVariable String id){
+    public ResponseEntity<SecretDetailResponse> getSecretDetail(@PathVariable @NotBlank String id){
         return ResponseEntity.ok(mapper.toDetailResponse(secretService.getDetails(id)));
     }
 
@@ -41,7 +42,7 @@ public class SecretController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<SecretDetailResponse> update(@PathVariable String id, @Valid @RequestBody SecretUpdateRequest secretUpdateRequest){
+    public ResponseEntity<SecretDetailResponse> update(@PathVariable @NotBlank String id, @Valid @RequestBody SecretUpdateRequest secretUpdateRequest){
         return ResponseEntity.ok(mapper.toDetailResponse(secretService.update(id, secretUpdateRequest)));
     }
 

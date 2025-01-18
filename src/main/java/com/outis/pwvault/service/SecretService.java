@@ -11,24 +11,24 @@ import java.util.List;
 public class SecretService {
 
     SecretMapper mapper;
-
+    SecretDto mock = new SecretDto("test","abc","/folder","pass");
     public SecretService(SecretMapper mapper){
         this.mapper = mapper;
     }
 
     public List<SecretDto> listAll(){
-        return null;
+        return List.of(mock);
     }
 
     public SecretDto getDetails(String id){
-        return null;
+        return mock;
     }
 
     public SecretDto create(SecretDto secretDto){
-        return null;
+        return mock;
     }
 
     public SecretDto update(String id, SecretUpdateRequest secretUpdateRequest) {
-        return null;
+        return mock;
     }
 }
