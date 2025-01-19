@@ -3,8 +3,7 @@ package com.outis.pwvault.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.outis.pwvault.dto.ErrorResponse;
-import com.outis.pwvault.model.JwtPayload;
-import com.outis.pwvault.service.JwtService;
+import com.outis.pwvault.util.CryptoUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,12 +17,12 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 
 @Component
-public class JwtFilter extends OncePerRequestFilter {
+public class TokenFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private final CryptoUtil cryptoUtil;
 
-    public JwtFilter(JwtService jwtService) {
-        this.jwtService = jwtService;
+    public TokenFilter(CryptoUtil cryptoUtil) {
+        this.cryptoUtil = cryptoUtil;
     }
 
     @Override
@@ -33,9 +32,8 @@ public class JwtFilter extends OncePerRequestFilter {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             String token = authHeader.substring(7);
 
-            System.out.println("test");
-            JwtPayload payload = jwtService.getDecryptedPayload(token);
-            request.setAttribute("accessToken", payload.keyVaultToken());
+            String accessToken = cryptoUtil.decryptWithAES(token);
+            request.setAttribute("accessToken",accessToken);
 
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -44,14 +42,13 @@ public class JwtFilter extends OncePerRequestFilter {
                     LocalDateTime.now().toString(),
                     String.valueOf(HttpStatus.UNAUTHORIZED.value()),
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                    "Invalid or expired JWT"
+                    "Invalid or expired Token"
             );
             response.getWriter().write(convertObjectToJson(error));
             return;
         }
         filterChain.doFilter(request, response);
     }
-
 
     public String convertObjectToJson(Object object) throws JsonProcessingException {
         if (object == null) {

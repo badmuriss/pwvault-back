@@ -1,7 +1,7 @@
 package com.outis.pwvault.config;
 
 import com.outis.pwvault.filter.IpValidationFilter;
-import com.outis.pwvault.filter.JwtFilter;
+import com.outis.pwvault.filter.TokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,19 +15,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final IpValidationFilter ipValidationFilter;
-    private final JwtFilter jwtFilter;
+    private final TokenFilter tokenFilter;
 
-    public SecurityConfig(IpValidationFilter ipValidationFilter, JwtFilter JwtFilter) {
+    public SecurityConfig(IpValidationFilter ipValidationFilter, TokenFilter TokenFilter) {
         this.ipValidationFilter = ipValidationFilter;
-        this.jwtFilter = JwtFilter;
+        this.tokenFilter = TokenFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(ipValidationFilter, JwtFilter.class)
+                .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(ipValidationFilter, TokenFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 )
