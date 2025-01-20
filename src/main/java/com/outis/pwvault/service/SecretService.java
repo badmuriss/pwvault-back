@@ -14,31 +14,29 @@ public class SecretService {
     SecretMapper mapper;
     AzureClient azureClient;
 
-    SecretDto mock = new SecretDto("test","abc","/folder","pass");
-
     public SecretService(SecretMapper mapper, AzureClient azureClient){
         this.mapper = mapper;
         this.azureClient = azureClient;
     }
 
     public List<SecretDto> listAll(String token){
-        var test = azureClient.getSecrets(token);
-        return List.of(mock);
+        return azureClient.getSecrets(token).stream().map(mapper::toDto).toList();
     }
 
     public SecretDto getDetails(String token, String id){
-        return mock;
+        return mapper.toDto(azureClient.getSecretDetails(token, id));
     }
 
     public SecretDto create(String token, SecretDto secretDto){
-        return mock;
+        return mapper.toDto(azureClient.setSecret(token, secretDto));
     }
 
     public SecretDto update(String token, String id, SecretUpdateRequest secretUpdateRequest) {
-        return mock;
+        SecretDto secretDto = mapper.toDto(secretUpdateRequest, getDetails(token, id));
+        return mapper.toDto(azureClient.setSecret(token, secretDto));
     }
 
     public void delete(String token, String id){
-
+        azureClient.deleteSecret(token, id);
     }
 }
