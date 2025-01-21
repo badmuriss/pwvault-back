@@ -7,7 +7,6 @@ import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-        unmappedTargetPolicy = org.mapstruct.ReportingPolicy.IGNORE,
         componentModel = "spring",
         nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
@@ -17,12 +16,16 @@ public interface SecretMapper {
 
     SecretMapper INSTANCE = Mappers.getMapper(SecretMapper.class);
 
-    @Mapping(target = "id", expression = "java(com.outis.pwvault.util.IDGeneratorUtil.GetBase62(7))")
+    @Mapping(target = "id", expression = "java(com.outis.pwvault.util.IDGeneratorUtil.GetBase62(8))")
     SecretDto toDto(SecretCreateRequest secretCreateRequest);
 
     SecretDto toDto(SecretUpdateRequest secretUpdateRequest);
 
-    SecretDto toDto(SecretUpdateRequest secretUpdateRequest, @MappingTarget SecretDto secretDto);
+    @Mapping(target = "name", expression = "java(secretUpdateRequest.name() != null ? secretUpdateRequest.name() : existingSecretDto.name())")
+    @Mapping(target = "folder", expression = "java(secretUpdateRequest.folder() != null ? secretUpdateRequest.folder() : existingSecretDto.folder())")
+    @Mapping(target = "value", expression = "java(secretUpdateRequest.value() != null ? secretUpdateRequest.value() : existingSecretDto.value())")
+    @Mapping(target = "id", expression = "java(existingSecretDto.id())")
+    SecretDto toDto(SecretUpdateRequest secretUpdateRequest, SecretDto existingSecretDto);
 
     SecretListResponse toListResponse(SecretDto secretDto);
 

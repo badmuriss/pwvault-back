@@ -15,6 +15,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 public class TokenFilter extends OncePerRequestFilter {
@@ -25,9 +26,23 @@ public class TokenFilter extends OncePerRequestFilter {
         this.cryptoUtil = cryptoUtil;
     }
 
+    private static final List<String> PUBLIC_ENDPOINTS = List.of(
+            "/token",
+            "/authorize",
+            "/callback",
+            "/auth/token",
+            "/api/public"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
+
+        if (isPublicEndpoint(request.getRequestURI())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             String token = authHeader.substring(7);
@@ -48,6 +63,10 @@ public class TokenFilter extends OncePerRequestFilter {
             return;
         }
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicEndpoint(String requestURI) {
+        return PUBLIC_ENDPOINTS.stream().anyMatch(requestURI::startsWith);
     }
 
     public String convertObjectToJson(Object object) throws JsonProcessingException {

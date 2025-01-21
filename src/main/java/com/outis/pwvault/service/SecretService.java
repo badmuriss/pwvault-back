@@ -3,6 +3,7 @@ package com.outis.pwvault.service;
 import com.outis.pwvault.client.AzureClient;
 import com.outis.pwvault.dto.SecretDto;
 import com.outis.pwvault.dto.SecretUpdateRequest;
+import com.outis.pwvault.exception.SecretNotFoundException;
 import com.outis.pwvault.mapper.SecretMapper;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,13 @@ public class SecretService {
     }
 
     public SecretDto update(String token, String id, SecretUpdateRequest secretUpdateRequest) {
-        SecretDto secretDto = mapper.toDto(secretUpdateRequest, getDetails(token, id));
-        return mapper.toDto(azureClient.setSecret(token, secretDto));
+        try {
+            SecretDto existingSecret = getDetails(token, id);
+            SecretDto secretDto = mapper.toDto(secretUpdateRequest, existingSecret);
+            return mapper.toDto(azureClient.setSecret(token, secretDto));
+        } catch (Exception e){
+            throw new SecretNotFoundException("Secret with id " + id + " not found");
+        }
     }
 
     public void delete(String token, String id){
