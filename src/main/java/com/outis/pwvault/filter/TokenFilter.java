@@ -3,18 +3,23 @@ package com.outis.pwvault.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.outis.pwvault.dto.ErrorResponse;
+import com.outis.pwvault.exception.UnauthenticatedException;
 import com.outis.pwvault.util.CryptoUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 
 @Component
@@ -27,12 +32,12 @@ public class TokenFilter extends OncePerRequestFilter {
     }
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/token",
             "/authorize",
-            "/callback",
-            "/auth/token",
-            "/api/public"
+            "/callback"
     );
+
+    @Value("${PWVAULT_FRONT_URI}")
+    private String frontendURI;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -48,9 +53,27 @@ public class TokenFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             String accessToken = cryptoUtil.decryptWithAES(token);
+
+            String[] tokenParts = accessToken.split("\\.");
+            if (tokenParts.length < 2) {
+                throw new SecurityException("Invalid token format");
+            }
+
+            String payload = new String(Base64.getDecoder().decode(tokenParts[1]), StandardCharsets.UTF_8);
+
+            JSONObject payloadJson = new JSONObject(payload);
+
+            long exp = payloadJson.getLong("exp");
+            long currentTimeInSeconds = System.currentTimeMillis() / 1000;
+
+            if (exp < currentTimeInSeconds) {
+                throw new UnauthenticatedException("Expired token");
+            }
+
             request.setAttribute("accessToken",accessToken);
 
         } catch (Exception e) {
+            response.setHeader("Location", this.frontendURI + "/token-fail");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             ErrorResponse error = new ErrorResponse(
