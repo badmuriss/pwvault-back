@@ -15,7 +15,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .anyRequest().permitAll()
                 )
-                //.oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/auth/token"))
                 .csrf(AbstractHttpConfigurer::disable);
     return http.build();
     }
