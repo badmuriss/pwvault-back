@@ -2,6 +2,7 @@ package com.outis.pwvault.controller;
 
 import com.outis.pwvault.exception.CryptoException;
 import com.outis.pwvault.util.CryptoUtil;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,22 +28,23 @@ public class UserController {
 
     private CryptoUtil cryptoUtil;
 
-    @Value("${TENANT_ID}")
+    @Value("${TENANT_ID:default}")
     private String tenantId;
 
-    @Value("${CLIENT_ID}")
+    @Value("${CLIENT_ID:default}")
     private String clientId;
 
-    @Value("${CLIENT_SECRET}")
+    @Value("${CLIENT_SECRET:default}")
     private String clientSecret;
 
-    @Value("${PWVAULT_FRONT_URI}")
+    @Value("${PWVAULT_FRONT_URI:http://localhost:8080}")
     private String frontendURI;
 
     public UserController(CryptoUtil cryptoUtil){
         this.cryptoUtil = cryptoUtil;
     }
 
+    @Operation(summary = "Redirects to Azure for AD authentication")
     @GetMapping("/authorize")
     public ResponseEntity<Map<String, String>> authorize(HttpServletRequest request) throws UnsupportedEncodingException {
         String apiUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
@@ -58,6 +60,7 @@ public class UserController {
         return ResponseEntity.ok(Collections.singletonMap("nextLink", authorizationUrl));
     }
 
+    @Operation(summary = "Generates keyvault access token")
     @GetMapping("/callback")
     public void callback(@RequestParam("code") String code, HttpServletRequest request, HttpServletResponse response) {
         try {

@@ -18,27 +18,28 @@ import java.time.LocalDateTime;
 @Component
 public class IpValidationFilter extends OncePerRequestFilter {
 
-    @Value("${PWVAULT_FRONT_IPV4}")
+    @Value("${app.test.profile:false}")
+    private boolean isTest;
+
+    @Value("${PWVAULT_FRONT_IPV4:127.0.0.1}")
     private String allowedOriginIPv4;
 
-    @Value("${PWVAULT_FRONT_IPV6}")
+    @Value("${PWVAULT_FRONT_IPV6:0:0:0:0:0:0:0:1}")
     private String allowedOriginIPv6;
-
-    private final String localhostIPv4 = "127.0.0.1"; // IPv4 localhost
-    private final String localhostIPv6 = "0:0:0:0:0:0:0:1"; // IPv6 localhost (::1)
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println(request.getLocalAddr());
-        System.out.println(request.getRemoteAddr());
+        if (isTest) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String ipOrigin = request.getRemoteAddr();
 
         if (ipOrigin == null ||
-            (!ipOrigin.equals(allowedOriginIPv4) && !ipOrigin.equals(localhostIPv4)
-            && !ipOrigin.equals(allowedOriginIPv6) && !ipOrigin.equals(localhostIPv6))) {
+            (!ipOrigin.equals(allowedOriginIPv4) && !ipOrigin.equals(allowedOriginIPv6))) {
 
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");

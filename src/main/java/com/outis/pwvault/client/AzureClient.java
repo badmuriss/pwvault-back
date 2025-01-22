@@ -18,7 +18,7 @@ import java.util.List;
 @Service
 public class AzureClient {
 
-    @Value("${KEYVAULT_URL}")
+    @Value("${KEYVAULT_URL:https://default-keyvault.vault.azure.net/}")
     private String keyVaultUrl;
 
     public List<SecretProperties> getSecrets(String token) {

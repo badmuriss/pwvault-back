@@ -25,6 +25,9 @@ import java.util.List;
 @Component
 public class TokenFilter extends OncePerRequestFilter {
 
+    @Value("${app.test.profile:false}")
+    private boolean isTest;
+
     private final CryptoUtil cryptoUtil;
 
     public TokenFilter(CryptoUtil cryptoUtil) {
@@ -33,15 +36,23 @@ public class TokenFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
             "/authorize",
-            "/callback"
+            "/callback",
+            "/api-docs",
+            "/swagger-ui"
     );
 
-    @Value("${PWVAULT_FRONT_URI}")
+    @Value("${PWVAULT_FRONT_URI:http://localhost:8080}")
     private String frontendURI;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws IOException, ServletException {
+
+        if (isTest) {
+            request.setAttribute("accessToken","token");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (isPublicEndpoint(request.getRequestURI())) {
             filterChain.doFilter(request, response);
@@ -63,10 +74,10 @@ public class TokenFilter extends OncePerRequestFilter {
 
             JSONObject payloadJson = new JSONObject(payload);
 
-            long exp = payloadJson.getLong("exp");
+            long expirationTime = payloadJson.getLong("exp");
             long currentTimeInSeconds = System.currentTimeMillis() / 1000;
 
-            if (exp < currentTimeInSeconds) {
+            if (expirationTime < currentTimeInSeconds) {
                 throw new UnauthenticatedException("Expired token");
             }
 

@@ -10,7 +10,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
 
-    @Value("${PWVAULT_FRONT_URI}")
+    @Value("${PWVAULT_FRONT_URI:http://localhost:8080/}")
     private String frontendURI;
 
     @Bean
