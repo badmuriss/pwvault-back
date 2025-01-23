@@ -8,11 +8,11 @@ import javax.validation.constraints.Size;
 @Builder
 public record SecretCreateRequest(
 
-        @Size(max = 20)
+        @Size(max = 30)
         @NotBlank
         String name,
 
-        @Size(max = 20)
+        @Size(max = 30)
         @NotBlank
         String folder,
 

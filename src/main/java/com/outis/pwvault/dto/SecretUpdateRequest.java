@@ -6,10 +6,10 @@ import javax.validation.constraints.Size;
 
 @Builder
 public record SecretUpdateRequest(
-        @Size(max = 20)
+        @Size(max = 30)
         String name,
 
-        @Size(max = 20)
+        @Size(max = 30)
         String folder,
 
         @Size(max = 255)
