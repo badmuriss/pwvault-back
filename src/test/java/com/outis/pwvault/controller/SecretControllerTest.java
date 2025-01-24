@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.outis.pwvault.dto.*;
 import com.outis.pwvault.mapper.SecretMapper;
 import com.outis.pwvault.service.SecretService;
+import com.outis.pwvault.util.CryptoUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ class SecretControllerTest {
 
     @MockitoBean
     private SecretMapper mapper;
+
+    @MockitoBean
+    private CryptoUtil cryptoUtil;
 
     @Test
     void listALL_shouldReturnListOfSecrets() throws Exception {
@@ -76,7 +80,7 @@ class SecretControllerTest {
         SecretCreateRequest secretCreateRequest = new SecretCreateRequest("name", "folder", "value");
 
         Mockito.when(secretService.create(anyString(), any(SecretDto.class))).thenReturn(secretDto);
-        Mockito.when(mapper.toDto(any(SecretCreateRequest.class))).thenReturn(secretDto);
+        Mockito.when(mapper.toDto(any(SecretCreateRequest.class), any(CryptoUtil.class))).thenReturn(secretDto);
         Mockito.when(mapper.toDetailResponse(any(SecretDto.class))).thenReturn(secretDetailResponse);
 
         mockMvc.perform(post("/secrets")

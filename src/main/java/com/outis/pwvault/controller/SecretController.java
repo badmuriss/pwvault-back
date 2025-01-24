@@ -6,6 +6,7 @@ import com.outis.pwvault.dto.SecretListResponse;
 import com.outis.pwvault.dto.SecretUpdateRequest;
 import com.outis.pwvault.mapper.SecretMapper;
 import com.outis.pwvault.service.SecretService;
+import com.outis.pwvault.util.CryptoUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -22,10 +23,12 @@ public class SecretController {
 
     private final SecretService secretService;
     private final SecretMapper mapper;
+    private final CryptoUtil cryptoUtil;
 
-    public SecretController(SecretService secretService, SecretMapper mapper){
+    public SecretController(SecretService secretService, SecretMapper mapper, CryptoUtil cryptoUtil){
         this.secretService = secretService;
         this.mapper = mapper;
+        this.cryptoUtil = cryptoUtil;
     }
 
     @Operation(summary = "Retrieves a list of secret properties")
@@ -46,7 +49,7 @@ public class SecretController {
     @PostMapping
     public ResponseEntity<SecretDetailResponse> create(HttpServletRequest request, @Valid @RequestBody SecretCreateRequest secretCreateRequest){
         String token = (String) request.getAttribute("accessToken");
-        return new ResponseEntity<SecretDetailResponse>(mapper.toDetailResponse(secretService.create(token, mapper.toDto(secretCreateRequest))), HttpStatus.CREATED);
+        return new ResponseEntity<SecretDetailResponse>(mapper.toDetailResponse(secretService.create(token, mapper.toDto(secretCreateRequest, this.cryptoUtil))), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Updates a secret")

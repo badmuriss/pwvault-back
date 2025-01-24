@@ -1,5 +1,6 @@
 package com.outis.pwvault.util;
 
+import com.outis.pwvault.exception.CryptoException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,39 +27,47 @@ public class CryptoUtil {
         return digest.digest(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String encryptWithAES(String text) throws Exception {
-        byte[] iv = new byte[16];
-        new SecureRandom().nextBytes(iv);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+    public String encryptWithAES(String text) {
+        try {
+            byte[] iv = new byte[16];
+            new SecureRandom().nextBytes(iv);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
-        byte[] key = sha256(secret);
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+            byte[] key = sha256(secret);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
 
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
 
-        byte[] encrypted = cipher.doFinal(text.getBytes(StandardCharsets.UTF_8));
-        String ivHex = bytesToHex(iv);
-        String encryptedText = Base64.getEncoder().encodeToString(encrypted);
+            byte[] encrypted = cipher.doFinal(text.getBytes(StandardCharsets.UTF_8));
+            String ivHex = bytesToHex(iv);
+            String encryptedText = Base64.getEncoder().encodeToString(encrypted);
 
-        return ivHex + ":" + encryptedText;
+            return ivHex + ":" + encryptedText;
+        } catch (Exception e){
+            throw new CryptoException("Encryption failed");
+        }
     }
 
-    public String decryptWithAES(String encrypted) throws Exception {
-        String[] parts = encrypted.split(":");
-        byte[] iv = hexToBytes(parts[0]);
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
+    public String decryptWithAES(String encrypted) {
+        try {
+            String[] parts = encrypted.split(":");
+            byte[] iv = hexToBytes(parts[0]);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
-        byte[] key = sha256(secret);
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
+            byte[] key = sha256(secret);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
 
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
 
-        byte[] encryptedPayload = Base64.getDecoder().decode(parts[1]);
-        byte[] decrypted = cipher.doFinal(encryptedPayload);
+            byte[] encryptedPayload = Base64.getDecoder().decode(parts[1]);
+            byte[] decrypted = cipher.doFinal(encryptedPayload);
 
-        return new String(decrypted, StandardCharsets.UTF_8);
+            return new String(decrypted, StandardCharsets.UTF_8);
+        } catch (Exception e){
+            return encrypted;
+        }
     }
 
     private static String bytesToHex(byte[] bytes) {

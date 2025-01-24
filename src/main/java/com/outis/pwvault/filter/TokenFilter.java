@@ -3,6 +3,7 @@ package com.outis.pwvault.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.outis.pwvault.dto.ErrorResponse;
+import com.outis.pwvault.exception.CryptoException;
 import com.outis.pwvault.exception.UnauthenticatedException;
 import com.outis.pwvault.util.CryptoUtil;
 import jakarta.servlet.FilterChain;
@@ -65,6 +66,10 @@ public class TokenFilter extends OncePerRequestFilter {
 
             String accessToken = cryptoUtil.decryptWithAES(token);
 
+            if (token.equals(accessToken)){
+                throw new CryptoException("Invalid token");
+            }
+
             String[] tokenParts = accessToken.split("\\.");
             if (tokenParts.length < 2) {
                 throw new SecurityException("Invalid token format");
@@ -91,7 +96,7 @@ public class TokenFilter extends OncePerRequestFilter {
                     LocalDateTime.now().toString(),
                     String.valueOf(HttpStatus.UNAUTHORIZED.value()),
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                    "Invalid or expired Token"
+                    e.getMessage()
             );
             response.getWriter().write(convertObjectToJson(error));
             return;

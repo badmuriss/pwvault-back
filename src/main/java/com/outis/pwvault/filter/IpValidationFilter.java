@@ -38,6 +38,8 @@ public class IpValidationFilter extends OncePerRequestFilter {
 
         String ipOrigin = request.getRemoteAddr();
 
+        System.out.println(ipOrigin);
+
         if (ipOrigin == null ||
             (!ipOrigin.equals(allowedOriginIPv4) && !ipOrigin.equals(allowedOriginIPv6))) {
 
