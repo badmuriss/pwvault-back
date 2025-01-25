@@ -1,6 +1,5 @@
 package com.outis.pwvault.config;
 
-import com.outis.pwvault.filter.IpValidationFilter;
 import com.outis.pwvault.filter.TokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,11 +11,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final IpValidationFilter ipValidationFilter;
     private final TokenFilter tokenFilter;
 
-    public SecurityConfig(IpValidationFilter ipValidationFilter, TokenFilter tokenFilter) {
-        this.ipValidationFilter = ipValidationFilter;
+    public SecurityConfig(TokenFilter tokenFilter) {
         this.tokenFilter = tokenFilter;
     }
 
@@ -27,8 +24,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(ipValidationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(tokenFilter, IpValidationFilter.class);
+                .addFilterAfter(tokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
