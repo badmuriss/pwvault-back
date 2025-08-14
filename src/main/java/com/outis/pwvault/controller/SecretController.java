@@ -61,7 +61,7 @@ public class SecretController {
 
     @Operation(summary = "Deletes a secret")
     @DeleteMapping("/{id}")
-    public ResponseEntity delete(HttpServletRequest request, @PathVariable @NotBlank String id){
+    public ResponseEntity<HttpStatus> delete(HttpServletRequest request, @PathVariable @NotBlank String id){
         String token = (String) request.getAttribute("accessToken");
         secretService.delete(token, id);
         return ResponseEntity.noContent().build();
