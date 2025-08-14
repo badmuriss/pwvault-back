@@ -8,6 +8,7 @@ import com.outis.pwvault.exception.UnauthenticatedException;
 import com.outis.pwvault.util.CryptoUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
@@ -39,7 +40,8 @@ public class TokenFilter extends OncePerRequestFilter {
             "/authorize",
             "/callback",
             "/api-docs",
-            "/swagger-ui"
+            "/swagger-ui",
+            "/auth"
     );
 
     @Value("${PWVAULT_FRONT_URI:http://localhost:8080}")
@@ -61,8 +63,10 @@ public class TokenFilter extends OncePerRequestFilter {
         }
 
         try {
-            String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-            String token = authHeader.substring(7);
+            String token = getTokenFromRequest(request);
+            if (token == null) {
+                throw new UnauthenticatedException("No token found");
+            }
 
             String accessToken = cryptoUtil.decryptWithAES(token);
 
@@ -106,6 +110,25 @@ public class TokenFilter extends OncePerRequestFilter {
 
     private boolean isPublicEndpoint(String requestURI) {
         return PUBLIC_ENDPOINTS.stream().anyMatch(requestURI::startsWith);
+    }
+
+    private String getTokenFromRequest(HttpServletRequest request) {
+        // First try Authorization header (for backward compatibility)
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // Then try cookies
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("auth_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 
     public String convertObjectToJson(Object object) throws JsonProcessingException {
